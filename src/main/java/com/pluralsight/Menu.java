@@ -3,10 +3,14 @@ package com.pluralsight;
 
 public class Menu {
 
-    public static void menuMain() {
-        String menuTitle = "Main Menu";
+    public static boolean closeMenu = false;
+    public static boolean shouldConfirmExit = false;
 
-        System.out.println("""
+    public static void menuMain() {
+        shouldConfirmExit = true;
+        while (!closeMenu) {
+            String menuTitle = "Main Menu";
+            System.out.println("""
                 What would you like to do today?
                 
                 D) Add Deposit
@@ -15,28 +19,31 @@ public class Menu {
                 
                 X) Exit the Application\n""");
 
-        String command = Console.promptForString("Enter your command ").toLowerCase().trim();
-        System.out.println(command);
+            String command = Console.promptForString("Enter your command ").toLowerCase().trim();
+            System.out.println(command);
 
-        switch (command) {
-            case "d":
-                menuAddDeposit();
-                return;
-            case "p":
-                menuMakePayment();
-                return;
-            case "l":
-                menuLedger();
-                return;
-            case "x":
-                processExitScreen(true);
-                return;
-            default:
-                System.out.println("Please enter one of the options listed above.");
+            switch (command) {
+                case "d" -> menuAddDeposit();
+                case "p" -> menuMakePayment();
+                case "l" -> menuLedger();
+                case "x" -> {
+                    System.out.println("""
+                            Leaving so soon?
+                            
+                            Y) Quit application
+                            N) Return to main menu""");
+                    String exit = Console.promptForString("Enter your command: ").toLowerCase().trim();;
+                    switch (exit) {
+                        case "y" -> closeMenu = true;
+                        case "n" -> {}
+                    }
+                }
+                default -> System.out.println("Please enter one of the options listed above.");
+            }
         }
     }
-    private static void processExitScreen(boolean confirmExit) {
-        if (confirmExit) {
+    private static void processExitScreen(boolean shouldConfirmExit) {
+        if (!shouldConfirmExit) {
             System.out.println("""
                     WARNING:
                     You are about to lose unsaved data.
@@ -52,9 +59,10 @@ public class Menu {
                     menuMain();
                     return;
                 case "n":
-                    processExitScreen(confirmExit);
                     return;
             }
+        } else {
+            return;
         }
     }
 

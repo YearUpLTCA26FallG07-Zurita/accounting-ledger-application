@@ -1,5 +1,9 @@
 package com.pluralsight;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
 public class AccountLedger {
     public static boolean closeMenu = false;
     public static boolean shouldConfirmExit = false;
@@ -9,6 +13,7 @@ public class AccountLedger {
     }
 
     public static void menuMain() {
+        closeMenu = false;
         String menuTitle = "Main Menu";
         String textMainMenu = """
                 What would you like to do today?
@@ -22,22 +27,32 @@ public class AccountLedger {
         System.out.println(textMainMenu);
 
         while (!closeMenu) {
-            String command = Console.promptForString("Enter your command: ").toLowerCase().trim();
-            switch (command) {
-                case "d" -> menuAddDeposit();
-                case "p" -> menuMakePayment();
-                case "l" -> menuLedger();
-                case "x" -> {
+            String option = Console.promptForString("Enter your command: ").toUpperCase().trim();
+            switch (option) {
+                case "D" -> menuAddDeposit();
+                case "P" -> menuMakePayment();
+                case "L" -> menuLedger();
+                case "X" -> {
                     System.out.println("""
                             Leaving so soon?
                             
                             Y) Quit application
-                            N) Return to main menu""");
-                    String exit = Console.promptForString("Enter your command: ").toLowerCase().trim();
-                    ;
-                    switch (exit) {
-                        case "y" -> closeMenu = true;
-                        case "n" -> System.out.println(textMainMenu);
+                            N) Return to main menu
+                            """);
+                    String confirm = Console.promptForString("Enter your command: ").toUpperCase().trim();
+
+                    switch (confirm) {
+                        case "Y" -> {
+                            System.out.println("""
+                                    --------------------------------------
+                                    Thank you for using Medirealm Banking.
+                                    
+                                    Have a great and productive day!
+                                    --------------------------------------
+                                    """);
+                            closeMenu = true;
+                        }
+                        case "N" -> System.out.println(textMainMenu);
                         default -> System.out.println("Enter Y or N only please.");
                     }
                 }
@@ -46,8 +61,8 @@ public class AccountLedger {
         }
     }
 
-    private static boolean confirmExitScreen(boolean shouldConfirmExit) {
-        if (!shouldConfirmExit) {
+    private static boolean confirmExitScreen(boolean closeMenu) {
+        if (!closeMenu) {
             return true;
         }
         System.out.println("""
@@ -58,34 +73,56 @@ public class AccountLedger {
                 Y) Continue
                 N) Return to screen""");
         do {
-            String confirm = Console.promptForString("Enter your command: ").toLowerCase().trim();
+            String confirm = Console.promptForString("Enter your command: ").toUpperCase().trim();
             switch (confirm) {
-                case "y" -> {
+                case "Y" -> {
                     shouldConfirmExit = false;
                 }
-                case "n" -> {
+                case "N" -> {
                 }
                 default -> System.out.println("Enter Y or N please.");
             }
         } while (true);
-
     }
 
-
     private static void menuAddDeposit() {
-        shouldConfirmExit = true;
-        while (!closeMenu) {
+        double currentBalance = 560.00;
+        double dailyDepositAmount = 1200;
+        boolean reachedDailyLimit = false;
+
+        if (dailyDepositAmount > 1000) {
+            reachedDailyLimit = true;
+
+        if (reachedDailyLimit == true) {
             System.out.println("""
-                    Test Menu: Deposit
+                    ------------------------------------------------
+                    Sorry, you've reached the daily deposit limit.
+                    Come back tomorrow to start depositing again!
                     
-                    A) null
-                    X) Return to main menu""");
+                    Want an increase?
+                    Contact us for more information: (555)925-8377
+                    ------------------------------------------------""");
+            closeMenu = true;
+        }
+        System.out.printf("""
+                Your current balance is $%.2f.
+                
+                Enter an amount you would like to deposit, up to $500.00 per deposit.
+                (Limit: $1,000.00 per day)
+                """, currentBalance);
 
-            String command = Console.promptForString("Enter X: ").toLowerCase().trim();
+        while (!closeMenu) {
+            double deposit = Console.promptForDouble("Enter your amount: ");
+            while (deposit > 500) {
+                System.out.println("""
+                        Entered deposit exceeds max deposit limit.
+                        Please enter an amount within the limit.
+                        """);
+            }
+            dailyDepositAmount += deposit;
+            currentBalance += deposit;
 
-            switch (command) {
-                case "x" -> confirmExitScreen((shouldConfirmExit));
-                case "a" -> System.out.println("null");
+
             }
 
         }
@@ -95,7 +132,41 @@ public class AccountLedger {
     }
 
     private static void menuLedger() {
-        System.out.println("test");
-        int test = Console.promptForInt("Test: ");
+        System.out.println("""
+                Account Ledger
+                
+                Select an option from below to get started.
+                
+                A) Display All Entries
+                D) View Deposits
+                P) View Payments
+                R) View Financial Reports
+                
+                X) Return to main menu
+                """);
+        while (!closeMenu) {
+
+            String option = Console.promptForString("Enter an option: ").toUpperCase().trim();
+            switch (option) {
+                case "A" -> submenuDisplayAllEntries();
+                case "D" -> submenuViewDeposits();
+                case "P" -> submenuViewPayments();
+                case "R" -> submenuReports();
+                case "X" -> closeMenu = true;
+                default -> System.out.println("Enter one of the options above.");
+            }
+        }
+    }
+
+    private static void submenuDisplayAllEntries() {
+    }
+
+    private static void submenuViewDeposits() {
+    }
+
+    private static void submenuViewPayments() {
+    }
+
+    private static void submenuReports() {
     }
 }

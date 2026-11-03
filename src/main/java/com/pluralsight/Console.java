@@ -32,4 +32,21 @@ public class Console {
             }
         }
     }
+    public static double promptForDouble(String prompt){
+
+        double result;
+
+        while(true){
+            try{
+
+                System.out.print(prompt);
+                result = scanner.nextDouble();
+                scanner.nextLine();
+                return result;
+            } catch (Exception e) {
+                System.out.println("Invalid input, please enter a number.");
+                scanner.nextLine();
+            }
+        }
+    }
 }

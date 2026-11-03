@@ -1,68 +1,75 @@
 package com.pluralsight;
 
+
 public class Menu {
 
-    static String menuText;
-    static String menuTitle;
-    static boolean confirmExit;
-    /**
-     * Constructor for the Menu class.
-     * @param menuText
-     * Contains the menu text that is visible in the main program without the rest of the code.
-     * @param confirmExit
-     * Determines whether a screen has information that can be lost from selecting another menu. TRUE displays a warning with a needed confirmation.
-     */
-    Menu(String menuText, String menuTitle, boolean confirmExit) {
-        this.menuText = menuText;
-        this.confirmExit = confirmExit;
-    }
+    public static void menuMain() {
+        String menuTitle = "Main Menu";
 
-    public static void menuMain(String menuText, boolean confirmExit) {
-
-        System.out.println(menuText);
+        System.out.println("""
+                What would you like to do today?
+                
+                D) Add Deposit
+                P) Make A Payment
+                L) Access Ledger
+                
+                X) Exit the Application\n""");
 
         String command = Console.promptForString("Enter your command ").toLowerCase().trim();
         System.out.println(command);
 
         switch (command) {
-            //case "D" -> menuAddDeposit();
-            //case "P" -> menuMakePayment();
-            //case "L" -> menuLedger();
-            case "x" -> processExitScreen(!confirmExit);
-            default -> System.out.println("Please enter one of the options listed above.");
+            case "d":
+                menuAddDeposit();
+                return;
+            case "p":
+                menuMakePayment();
+                return;
+            case "l":
+                menuLedger();
+                return;
+            case "x":
+                processExitScreen(true);
+                return;
+            default:
+                System.out.println("Please enter one of the options listed above.");
         }
     }
-    public static void processExitScreen(boolean confirmExit) {
-        String menuTitle = "";
+    private static void processExitScreen(boolean confirmExit) {
         if (confirmExit) {
             System.out.println("""
-                    Data entered that hasn't been saved will be lost.
-
+                    WARNING:
+                    You are about to lose unsaved data.
                     Do you wish to continue?
                     
-                    Y) Continue to previous menu
-                    N) Cancel and return to""");
+                    Y) Continue
+                    N) Return to screen""");
 
-            String confirmation = Console.promptForString("Enter your command: ").toLowerCase().trim();
+            String command = Console.promptForString("Enter your command: ").toLowerCase().trim();
 
-            switch (confirmation) {
-                case "no":
-                    Menu.menuMain("""
-                What would you like to do today?
-
-                D) Add Deposit
-                P) Make A Payment
-                L) Access Ledger
-
-                X) Exit the Application\n""", false);
+            switch (command) {
+                case "y":
+                    menuMain();
                     return;
-                case "":
-
-
+                case "n":
+                    processExitScreen(confirmExit);
+                    return;
             }
-        } else {
-            System.out.println("false test");
+        }
+    }
+
+    private static void menuAddDeposit() {
+    }
+
+    private static void menuMakePayment() {
+    }
+
+    private static void menuLedger() {
+        System.out.println("test");
+        int test = Console.promptForInt("Test: ");
+
+        if (test == 1) {
+            processExitScreen(true);
         }
     }
 }
-

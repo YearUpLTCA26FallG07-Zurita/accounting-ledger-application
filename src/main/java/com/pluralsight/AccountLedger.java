@@ -3,31 +3,54 @@ package com.pluralsight;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class AccountLedger {
     public static boolean closeMenu = false;
     public static boolean shouldConfirmExit = false;
+    public static String textMainMenu = """
+            What would you like to do today?
+            
+            D) Add Deposit
+            P) Make A Payment
+            L) Access Ledger
+            
+            X) Exit the Application
+            """;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException, IOException {
+
+        // Account Information
+        DateTimeFormatter format = DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy - hh:mm a z");
+        try (BufferedWriter transactionReport = new BufferedWriter(new FileWriter("account_details.txt"))) {
+            transactionReport.write("""
+                MediRealm Banking
+                --------------------
+                Transaction History
+                --------------------
+                """);
+            transactionReport.write("(Information generated as of " + ZonedDateTime.now().format(format) + ")");
+            transactionReport.newLine();
+            transactionReport.newLine();
+        }
+        catch (IOException e) {
+            System.out.println("Could not generate file.");
+        }
+
         menuMain();
     }
 
-    public static void menuMain() {
+    public static void menuMain() throws InterruptedException {
         closeMenu = false;
         String menuTitle = "Main Menu";
-        String textMainMenu = """
-                What would you like to do today?
-                
-                D) Add Deposit
-                P) Make A Payment
-                L) Access Ledger
-                
-                X) Exit the Application
-                """;
+
         System.out.println(textMainMenu);
 
         while (!closeMenu) {
-            String option = Console.promptForString("Enter your command: ").toUpperCase().trim();
+            //String option = Console.promptForString("Enter your command: ").toUpperCase().trim();
+            String option = "D";
             switch (option) {
                 case "D" -> menuAddDeposit();
                 case "P" -> menuMakePayment();
@@ -61,57 +84,55 @@ public class AccountLedger {
         }
     }
 
-    private static boolean confirmExitScreen(boolean closeMenu) {
-        if (!closeMenu) {
-            return true;
-        }
-        System.out.println("""
-                WARNING:
-                You are about to lose unsaved data.
-                Do you wish to continue?
-                
-                Y) Continue
-                N) Return to screen""");
-        do {
-            String confirm = Console.promptForString("Enter your command: ").toUpperCase().trim();
-            switch (confirm) {
-                case "Y" -> {
-                    shouldConfirmExit = false;
-                }
-                case "N" -> {
-                }
-                default -> System.out.println("Enter Y or N please.");
-            }
-        } while (true);
-    }
+//    private static void confirmExitScreen(boolean shouldConfirmExit) {
+//        closeMenu = false;
+//        System.out.println("""
+//                WARNING:
+//                You are about to lose unsaved data.
+//                Do you wish to continue?
+//
+//                Y) Continue
+//                N) Cancel exit
+//                """);
+//        if (shouldConfirmExit) {
+//            String confirm = Console.promptForString("Enter your command: ").toUpperCase().trim();
+//            switch (confirm) {
+//                case "Y" -> {
+//                    closeMenu = true;
+//                }
+//                case "N" -> {
+//                }
+//                default -> System.out.println("Enter Y or N please.");
+//            }
+//        }
+//    }
 
-    private static void menuAddDeposit() {
+    private static void menuAddDeposit() throws InterruptedException {
         double currentBalance = 560.00;
-        double dailyDepositAmount = 1200;
-        boolean reachedDailyLimit = false;
+        double dailyDepositAmount = 0;
 
         if (dailyDepositAmount > 1000) {
-            reachedDailyLimit = true;
-
-        if (reachedDailyLimit == true) {
             System.out.println("""
                     ------------------------------------------------
                     Sorry, you've reached the daily deposit limit.
                     Come back tomorrow to start depositing again!
                     
                     Want an increase?
-                    Contact us for more information: (555)925-8377
+                    Contact us for more information: (555) 925-8377
                     ------------------------------------------------""");
-            closeMenu = true;
+            Thread.sleep(3000);
+            System.out.println(textMainMenu);
         }
-        System.out.printf("""
-                Your current balance is $%.2f.
-                
-                Enter an amount you would like to deposit, up to $500.00 per deposit.
-                (Limit: $1,000.00 per day)
-                """, currentBalance);
+
 
         while (!closeMenu) {
+            System.out.printf("""
+                    Your current balance is $%.2f.
+                    
+                    Enter an amount you would like to deposit, up to $500.00 per deposit.
+                    (Limit: $1,000.00 per day)
+                    """, currentBalance);
+
             double deposit = Console.promptForDouble("Enter your amount: ");
             while (deposit > 500) {
                 System.out.println("""
@@ -121,10 +142,6 @@ public class AccountLedger {
             }
             dailyDepositAmount += deposit;
             currentBalance += deposit;
-
-
-            }
-
         }
     }
 
@@ -170,3 +187,4 @@ public class AccountLedger {
     private static void submenuReports() {
     }
 }
+

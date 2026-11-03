@@ -3,6 +3,7 @@ package com.pluralsight;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.Buffer;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -24,25 +25,40 @@ public class AccountLedger {
 
         // Account Information
         DateTimeFormatter format = DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy - hh:mm a z");
+
         try (BufferedWriter transactionReport = new BufferedWriter(new FileWriter("account_details.txt"))) {
             transactionReport.write("""
-                MediRealm Banking
-                --------------------
-                Transaction History
-                --------------------
-                """);
+                    MediRealm Banking
+                    --------------------
+                    Transaction History
+                    --------------------
+                    """);
             transactionReport.write("(Information generated as of " + ZonedDateTime.now().format(format) + ")");
             transactionReport.newLine();
             transactionReport.newLine();
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             System.out.println("Could not generate file.");
-        }
 
+
+        }
+        try (BufferedWriter accountDeposits = new BufferedWriter(new FileWriter("account_deposits.txt"))) {
+            accountDeposits.write("""
+                    MediRealm Banking
+                    --------------------
+                    Deposit History
+                    --------------------
+                    """);
+            accountDeposits.write("(Information generated as of " + ZonedDateTime.now().format(format) + ")");
+            accountDeposits.newLine();
+            accountDeposits.newLine();
+        } catch (IOException e) {
+            System.out.println("Could not generate file.");
+
+        }
         menuMain();
     }
 
-    public static void menuMain() throws InterruptedException {
+    public static void menuMain() throws InterruptedException, IOException {
         closeMenu = false;
         String menuTitle = "Main Menu";
 
@@ -107,9 +123,19 @@ public class AccountLedger {
 //        }
 //    }
 
-    private static void menuAddDeposit() throws InterruptedException {
-        double currentBalance = 560.00;
+    private static void menuAddDeposit() throws InterruptedException, IOException {
+        double currentBalance = 540.00;
         double dailyDepositAmount = 0;
+
+        try (BufferedWriter accountDeposits = new BufferedWriter(new FileWriter("account_deposits.txt", true))) {
+            accountDeposits.write("Current Balance:");
+            accountDeposits.newLine();
+            String depositBalance = String.format("Deposit Amount: $%.2f", currentBalance);
+            accountDeposits.write(depositBalance);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
 
         if (dailyDepositAmount > 1000) {
             System.out.println("""
@@ -123,7 +149,6 @@ public class AccountLedger {
             Thread.sleep(3000);
             System.out.println(textMainMenu);
         }
-
 
         while (!closeMenu) {
             System.out.printf("""

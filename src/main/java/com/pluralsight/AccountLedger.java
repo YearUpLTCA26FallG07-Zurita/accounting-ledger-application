@@ -1,14 +1,16 @@
 package com.pluralsight;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.Buffer;
-import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
+import java.io.*;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Locale;
 
 public class AccountLedger {
+    static String[] convertedReport;
+    public static HashMap<LocalDate, Transaction> reportTransactions = new HashMap<LocalDate, Transaction>();
     public static boolean closeMenu = false;
     public static boolean shouldConfirmExit = false;
     public static String textMainMenu = """
@@ -23,37 +25,27 @@ public class AccountLedger {
 
     public static void main(String[] args) throws InterruptedException, IOException {
 
-        // Account Information
-        DateTimeFormatter format = DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy - hh:mm a z");
+        try {
+            DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("hh:mm a", Locale.US);
+            BufferedReader reader = new BufferedReader(new FileReader("transactions.csv"));
 
-        try (BufferedWriter transactionReport = new BufferedWriter(new FileWriter("account_details.txt"))) {
-            transactionReport.write("""
-                    MediRealm Banking
-                    --------------------
-                    Transaction History
-                    --------------------
-                    """);
-            transactionReport.write("(Information generated as of " + ZonedDateTime.now().format(format) + ")");
-            transactionReport.newLine();
-            transactionReport.newLine();
-        } catch (IOException e) {
-            System.out.println("Could not generate file.");
+            reader.readLine();
 
+            String input;
 
-        }
-        try (BufferedWriter accountDeposits = new BufferedWriter(new FileWriter("account_deposits.txt"))) {
-            accountDeposits.write("""
-                    MediRealm Banking
-                    --------------------
-                    Deposit History
-                    --------------------
-                    """);
-            accountDeposits.write("(Information generated as of " + ZonedDateTime.now().format(format) + ")");
-            accountDeposits.newLine();
-            accountDeposits.newLine();
-        } catch (IOException e) {
-            System.out.println("Could not generate file.");
+            while ((input = reader.readLine()) != null) {
+                convertedReport = input.split("\\|");
+                LocalDate date = LocalDate.parse(convertedReport[0]);
+                LocalTime time = LocalTime.parse(convertedReport[1], timeFormat);
+                String description = convertedReport[2];
+                String vendor = convertedReport[3];
+                double amount = Double.parseDouble(convertedReport[4]);
+                Transaction newTransaction = new Transaction(date, time, description, vendor, amount);
+                reportTransactions.put(date, newTransaction);
 
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
         menuMain();
     }
@@ -65,8 +57,8 @@ public class AccountLedger {
         System.out.println(textMainMenu);
 
         while (!closeMenu) {
-            //String option = Console.promptForString("Enter your command: ").toUpperCase().trim();
-            String option = "D";
+            String option = Console.promptForString("Enter your command: ").toUpperCase().trim();
+
             switch (option) {
                 case "D" -> menuAddDeposit();
                 case "P" -> menuMakePayment();
@@ -100,32 +92,10 @@ public class AccountLedger {
         }
     }
 
-//    private static void confirmExitScreen(boolean shouldConfirmExit) {
-//        closeMenu = false;
-//        System.out.println("""
-//                WARNING:
-//                You are about to lose unsaved data.
-//                Do you wish to continue?
-//
-//                Y) Continue
-//                N) Cancel exit
-//                """);
-//        if (shouldConfirmExit) {
-//            String confirm = Console.promptForString("Enter your command: ").toUpperCase().trim();
-//            switch (confirm) {
-//                case "Y" -> {
-//                    closeMenu = true;
-//                }
-//                case "N" -> {
-//                }
-//                default -> System.out.println("Enter Y or N please.");
-//            }
-//        }
-//    }
-
     private static void menuAddDeposit() throws InterruptedException, IOException {
         double currentBalance = 540.00;
         double dailyDepositAmount = 0;
+        closeMenu = false;
 
         try (BufferedWriter accountDeposits = new BufferedWriter(new FileWriter("account_deposits.txt", true))) {
             accountDeposits.write("Current Balance:");
@@ -135,7 +105,6 @@ public class AccountLedger {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
 
         if (dailyDepositAmount > 1000) {
             System.out.println("""
@@ -150,23 +119,49 @@ public class AccountLedger {
             System.out.println(textMainMenu);
         }
 
-        while (!closeMenu) {
             System.out.printf("""
                     Your current balance is $%.2f.
                     
                     Enter an amount you would like to deposit, up to $500.00 per deposit.
                     (Limit: $1,000.00 per day)
                     """, currentBalance);
+        while (!closeMenu) {
 
             double deposit = Console.promptForDouble("Enter your amount: ");
-            while (deposit > 500) {
+
+            if (deposit > 500) {
                 System.out.println("""
                         Entered deposit exceeds max deposit limit.
                         Please enter an amount within the limit.
                         """);
+            } else {
+                currentBalance += deposit;
+                dailyDepositAmount += deposit;
+
+                try (BufferedWriter accountBalance = new BufferedWriter(new FileWriter("account_balance.txt", true))) {
+                    accountBalance.write(String.valueOf(currentBalance));
+
+                }
+
+                System.out.printf("""
+                        Deposited $%.2f into your account.
+                        
+                        Make another deposit?
+                        
+                        Y) Yes
+                        N) No, return to main menu
+                        """, deposit);
+
+                String option = Console.promptForString("Enter your option: ").toUpperCase().trim();
+
+                switch (option) {
+                    case "Y" -> {
+                        return;
+                    }
+                    case "N" -> closeMenu = true;
+                }
+
             }
-            dailyDepositAmount += deposit;
-            currentBalance += deposit;
         }
     }
 
@@ -201,6 +196,15 @@ public class AccountLedger {
     }
 
     private static void submenuDisplayAllEntries() {
+        System.out.println("");
+        for (Transaction listing : reportTransactions.values()) {
+            System.out.printf("%s | %s | %-30s | %-25s | $%.2f%n",
+                    listing.getDate(),
+                    listing.getTime(),
+                    listing.getDescription(),
+                    listing.getVendor(),
+                    listing.getAmount());
+        }
     }
 
     private static void submenuViewDeposits() {
